@@ -16,7 +16,8 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QStatusBar
+    QStatusBar,
+    QScrollArea
 )
 
 
@@ -233,6 +234,10 @@ class CRUDWindow(QMainWindow):
 
         self.table = LibraryTable("perpustakaan.sql")
 
+        scrollarea = QScrollArea()
+        scrollarea.setWidgetResizable(True)
+        scrollarea.setWidget(self.table)
+
         save_button = QPushButton("Simpan")
         delete_button = QPushButton("Hapus Data")
         save_button.clicked.connect(self.fileSaved_)
@@ -249,7 +254,7 @@ class CRUDWindow(QMainWindow):
         root.addLayout(form)
         root.addWidget(save_button)
         root.addWidget(self.search_line)
-        root.addWidget(self.table)
+        root.addWidget(scrollarea)
         root.addWidget(delete_button)
         widget.setLayout(root)
 
