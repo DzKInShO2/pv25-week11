@@ -15,7 +15,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QPushButton,
     QTableWidget,
-    QTableWidgetItem
+    QTableWidgetItem,
+    QStatusBar
 )
 
 
@@ -174,6 +175,8 @@ class CRUDWindow(QMainWindow):
         self.menubarInit_()
         self.menubarCallbacks_()
 
+        self.statusbarInit_()
+
         self.widgetInit_()
 
     def menubarInit_(self):
@@ -213,6 +216,12 @@ class CRUDWindow(QMainWindow):
         self.edit_search_action_.triggered.connect(self.editSearched_)
         self.edit_delete_action_.triggered.connect(self.editDeleted_)
 
+    def statusbarInit_(self):
+        statusbar = QStatusBar()
+        statusbar.addPermanentWidget(QLabel("Dzakanov Inshoofi (F1D02310110)"))
+
+        self.setStatusBar(statusbar)
+
     def widgetInit_(self):
         self.search_line = QLineEdit()
         self.search_line.setPlaceholderText("Cari judul...")
@@ -237,7 +246,6 @@ class CRUDWindow(QMainWindow):
         form.addRow(QLabel("Pengarang"), self.record_author)
         form.addRow(QLabel("Tahun"), self.record_year)
 
-        root.addWidget(QLabel("F1D02310110 - Dzakanov Inshoofi"))
         root.addLayout(form)
         root.addWidget(save_button)
         root.addWidget(self.search_line)
