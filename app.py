@@ -1,3 +1,4 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtSql import (
     QSqlDatabase,
     QSqlQuery
@@ -9,6 +10,7 @@ from PyQt5.QtWidgets import (
     QMenu,
     QAction,
     QVBoxLayout,
+    QHBoxLayout,
     QFormLayout,
     QMessageBox,
     QLineEdit,
@@ -17,7 +19,8 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QStatusBar,
-    QScrollArea
+    QScrollArea,
+    QDockWidget
 )
 
 
@@ -177,6 +180,7 @@ class CRUDWindow(QMainWindow):
         self.menubarCallbacks_()
 
         self.statusbarInit_()
+        self.dockInit_()
 
         self.widgetInit_()
 
@@ -223,14 +227,38 @@ class CRUDWindow(QMainWindow):
 
         self.setStatusBar(statusbar)
 
-    def widgetInit_(self):
-        self.search_line = QLineEdit()
-        self.search_line.setPlaceholderText("Cari judul...")
-        self.search_line.textChanged.connect(self.editSearched_)
+    def dockInit_(self):
+        form_dock = QDockWidget()
+        form_widget = QWidget()
+
+        save_button = QPushButton("Simpan")
+        delete_button = QPushButton("Hapus Data")
+        save_button.clicked.connect(self.fileSaved_)
+        delete_button.clicked.connect(self.editDeleted_)
+
+        save_delete_layout = QHBoxLayout()
+        save_delete_layout.addWidget(save_button)
+        save_delete_layout.addWidget(delete_button)
 
         self.record_title = QLineEdit()
         self.record_author = QLineEdit()
         self.record_year = QLineEdit()
+
+        form = QFormLayout()
+        form.addRow(QLabel("Judul"), self.record_title)
+        form.addRow(QLabel("Pengarang"), self.record_author)
+        form.addRow(QLabel("Tahun"), self.record_year)
+        form.addRow(save_delete_layout)
+
+        form_widget.setLayout(form)
+        form_dock.setWidget(form_widget)
+
+        self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, form_dock)
+
+    def widgetInit_(self):
+        self.search_line = QLineEdit()
+        self.search_line.setPlaceholderText("Cari judul...")
+        self.search_line.textChanged.connect(self.editSearched_)
 
         self.table = LibraryTable("perpustakaan.sql")
 
@@ -238,24 +266,10 @@ class CRUDWindow(QMainWindow):
         scrollarea.setWidgetResizable(True)
         scrollarea.setWidget(self.table)
 
-        save_button = QPushButton("Simpan")
-        delete_button = QPushButton("Hapus Data")
-        save_button.clicked.connect(self.fileSaved_)
-        delete_button.clicked.connect(self.editDeleted_)
-
         widget = QWidget()
         root = QVBoxLayout()
-        form = QFormLayout()
 
-        form.addRow(QLabel("Judul"), self.record_title)
-        form.addRow(QLabel("Pengarang"), self.record_author)
-        form.addRow(QLabel("Tahun"), self.record_year)
-
-        root.addLayout(form)
-        root.addWidget(save_button)
-        root.addWidget(self.search_line)
         root.addWidget(scrollarea)
-        root.addWidget(delete_button)
         widget.setLayout(root)
 
         self.setCentralWidget(widget)
