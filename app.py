@@ -244,11 +244,19 @@ class CRUDWindow(QMainWindow):
         self.record_author = QLineEdit()
         self.record_year = QLineEdit()
 
+        self.search_line = QLineEdit()
+        self.search_line.setPlaceholderText("Cari judul...")
+        self.search_line.textChanged.connect(self.editSearched_)
+
+        search_line_layout = QVBoxLayout()
+        search_line_layout.addWidget(self.search_line)
+
         form = QFormLayout()
         form.addRow(QLabel("Judul"), self.record_title)
         form.addRow(QLabel("Pengarang"), self.record_author)
         form.addRow(QLabel("Tahun"), self.record_year)
         form.addRow(save_delete_layout)
+        form.addRow(search_line_layout)
 
         form_widget.setLayout(form)
         form_dock.setWidget(form_widget)
@@ -256,10 +264,6 @@ class CRUDWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, form_dock)
 
     def widgetInit_(self):
-        self.search_line = QLineEdit()
-        self.search_line.setPlaceholderText("Cari judul...")
-        self.search_line.textChanged.connect(self.editSearched_)
-
         self.table = LibraryTable("perpustakaan.sql")
 
         scrollarea = QScrollArea()
