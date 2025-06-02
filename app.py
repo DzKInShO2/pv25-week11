@@ -20,7 +20,8 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QStatusBar,
     QScrollArea,
-    QDockWidget
+    QDockWidget,
+    QFileDialog
 )
 
 
@@ -93,7 +94,17 @@ class LibraryTable(QTableWidget):
         self.tableUpdateView_()
 
     def exportToCSV(self, path):
-        pass
+        query = QSqlQuery()
+        query.prepare("""
+        SELECT * FROM Buku;
+        """)
+
+        if query.exec():
+            with open(path, "w") as f:
+                f.write("Judul,Pengarang,Tahun")
+                while query.next():
+                    f.write(f"{query.value(1)},{
+                            query.value(2)},{query.value(3)}\n")
 
     def setupDatabase_(self, database):
         self.sql_conn = QSqlDatabase.addDatabase("QSQLITE")
@@ -231,6 +242,10 @@ class CRUDWindow(QMainWindow):
         form_dock = QDockWidget()
         form_widget = QWidget()
 
+        self.record_title = QLineEdit()
+        self.record_author = QLineEdit()
+        self.record_year = QLineEdit()
+
         save_button = QPushButton("Simpan")
         delete_button = QPushButton("Hapus Data")
         save_button.clicked.connect(self.fileSaved_)
@@ -240,10 +255,6 @@ class CRUDWindow(QMainWindow):
         save_delete_layout.addWidget(save_button)
         save_delete_layout.addWidget(delete_button)
 
-        self.record_title = QLineEdit()
-        self.record_author = QLineEdit()
-        self.record_year = QLineEdit()
-
         self.search_line = QLineEdit()
         self.search_line.setPlaceholderText("Cari judul...")
         self.search_line.textChanged.connect(self.editSearched_)
@@ -251,10 +262,20 @@ class CRUDWindow(QMainWindow):
         search_line_layout = QVBoxLayout()
         search_line_layout.addWidget(self.search_line)
 
+        paste_full_from_clipboard = QPushButton("Paste CSV (3 Value) dari Clipboard")
+        paste_full_from_clipboard.clicked.connect(self.pasteFull_)
+
+        paste_layout = QVBoxLayout()
+        paste_layout.addWidget(paste_full_from_clipboard)
+
         form = QFormLayout()
+        form.setFormAlignment(Qt.AlignmentFlag.AlignHCenter)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+
         form.addRow(QLabel("Judul"), self.record_title)
         form.addRow(QLabel("Pengarang"), self.record_author)
         form.addRow(QLabel("Tahun"), self.record_year)
+        form.addRow(paste_layout)
         form.addRow(save_delete_layout)
         form.addRow(search_line_layout)
 
@@ -289,7 +310,12 @@ class CRUDWindow(QMainWindow):
             self.record_year.clear()
 
     def fileExported_(self):
-        pass
+        path, _ = QFileDialog.getSaveFileName(self, "Simpan CSV", "",
+                                              "CSV Files (*.csv)")
+        if len(path.split(".")) == 1:
+            path += ".csv"
+
+        self.table.exportToCSV(path)
 
     def fileExited_(self):
         self.close()
@@ -309,6 +335,22 @@ class CRUDWindow(QMainWindow):
                 self.table.deleteRecord(idx)
         else:
             QMessageBox.warning(None, "", "Tidak ada data yang dipilih.")
+
+    def pasteFull_(self):
+        clipboard = QApplication.clipboard()
+        text = clipboard.text()
+
+        if text is None:
+            return
+
+        lines = text.split(",")
+        for i in range(len(lines)):
+            if i == 0:
+                self.record_title.setText(lines[i].strip())
+            elif i == 1:
+                self.record_author.setText(lines[i].strip())
+            elif i == 2:
+                self.record_year.setText(lines[i].strip())
 
 
 if __name__ == "__main__":
